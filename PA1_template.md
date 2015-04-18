@@ -1,10 +1,4 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    toc: true
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 ## Inroduction
 This is an R Markdown document produced for Peer Assessment 1 in the 5th course
@@ -20,7 +14,8 @@ intervals each day.
 If the original data with the source file is not available yet, it is 
 downloaded and unziped in the subdirectory `data`.  
 
-```{r load}
+
+```r
 if(!file.exists("data")) {
         dir.create("data")
 }
@@ -50,7 +45,8 @@ Now the data is available in a data frame with variables:
 To calculate some statistical properties about steps taken per day the
 data is aggregated per day. Additionally, median and mean is computed.
 
-```{r mean_steps}
+
+```r
 daily_steps <- aggregate(data[,'steps'], by = list(data$date), FUN = sum)
 median_steps_per_day <- median(daily_steps$x, na.rm=TRUE)
 mean_steps_per_day = mean(daily_steps$x, na.rm=TRUE)
@@ -60,22 +56,26 @@ mean_steps_per_day_string <- prettyNum(mean_steps_per_day, digits = 0,
 
 This histogram shows the distribution of daily steps.
 
-```{r histogram, fig.height=4}
+
+```r
 hist(daily_steps$x, breaks=20, 
      main="Distribution of Daily Steps", 
      xlab="Number of Steps per Day")
 ```
 
-The mean steps per day are `r mean_steps_per_day_string` 
-(exact: `r mean_steps_per_day`) and the median steps per day are
-`r median_steps_per_day`.
+![](PA1_template_files/figure-html/histogram-1.png) 
+
+The mean steps per day are 10,766 
+(exact: 1.0766189\times 10^{4}) and the median steps per day are
+10765.
 
 ## What is the average daily activity pattern?
 
 The average daily activity pattern uses the average steps per 5-min
 interval.
 
-```{r interval_steps}
+
+```r
 interval_steps <- aggregate(data[,'steps'], 
                             by = list(data$interval), 
                             FUN = mean, 
@@ -89,7 +89,8 @@ max_steps_string <- paste(max_steps_time %/% 100, max_steps_time %% 100,
 This line plot shows the activity pattern of average steps over the course of
 a day.
 
-```{r lineplot, fig.height=4}
+
+```r
 start_time <- as.POSIXct(strptime("1970-01-01 00:00:00", "%Y-%m-%d %H:%M:%S"))
 end_time <- as.POSIXct(strptime("1970-01-01 23:55:01", "%Y-%m-%d %H:%M:%S"))
 with(interval_steps, {
@@ -102,15 +103,18 @@ with(interval_steps, {
 })
 ```
 
-The most average steps (`r round(max_steps,0)`) on a day are at 
-`r max_steps_string`.
+![](PA1_template_files/figure-html/lineplot-1.png) 
+
+The most average steps (206) on a day are at 
+8:35.
 
 ## Imputing missing values
-Only `r nrow(data[complete.cases(data),])` out of 
-`r nrow(data)` records are complete. As (very simple) strategy for filling
+Only 15264 out of 
+17568 records are complete. As (very simple) strategy for filling
 the missing values we use the general average of steps in an interval.
 
-```{r imputing}
+
+```r
 data_complete <- data
 data_complete[!complete.cases(data_complete$steps),'steps'] = 
         mean(data[complete.cases(data$steps),'steps'])
@@ -119,7 +123,8 @@ data_complete[!complete.cases(data_complete$steps),'steps'] =
 Now, we calculate again some statistical properties about steps taken per day
 from the data with imputed values. Additionally, median and mean is computed.
 
-```{r mean_steps_imputed}
+
+```r
 daily_steps_c <- aggregate(data_complete[,'steps'], 
                            by = list(data_complete$date), 
                            FUN = sum)
@@ -133,24 +138,36 @@ mean_steps_per_day_string_c <- prettyNum(mean_steps_per_day_c, digits = 0,
 
 This histogram shows the distribution of daily steps with imputed data.
 
-```{r histogram_imputed, fig.height=4}
+
+```r
 hist(daily_steps_c$x, breaks=20, 
      main="Distribution of Daily Steps", 
      xlab="Number of Steps per Day")
 ```
 
-The mean steps per day are `r mean_steps_per_day_string_c` 
-(exact: `r mean_steps_per_day_c`) and the median steps per day are
-`r median_steps_per_day_string_c` (exact: `r median_steps_per_day_c`).
+![](PA1_template_files/figure-html/histogram_imputed-1.png) 
+
+The mean steps per day are 10,766 
+(exact: 1.0766189\times 10^{4}) and the median steps per day are
+10,766 (exact: 1.0766189\times 10^{4}).
 
 ###Explanation
 
 Why is the distribution only affected in the 10,000 block? If we take a
 look what values we are missing, we find the following result.
 
-```{r explanation}
+
+```r
 tmp <- data[!complete.cases(data),'date']
 head(sort(table(tmp), decreasing = TRUE),10)
+```
+
+```
+## tmp
+## 2012-10-01 2012-10-08 2012-11-01 2012-11-04 2012-11-09 2012-11-10 
+##        288        288        288        288        288        288 
+## 2012-11-14 2012-11-30 2012-10-02 2012-10-03 
+##        288        288          0          0
 ```
 
 So we find, that either a whole day is missing, or completly availalbe and 
@@ -162,7 +179,8 @@ there is no change in the mean and median!
 To compare differences in activity patterns between weekdays and weekends, a
 factor varialbe `data$day_type` is created.
 
-```{r weekend}
+
+```r
 tmp_day <- (weekdays(as.POSIXct(data$date)) == "Sunday" | 
             weekdays(as.POSIXct(data$date)) == "Saturday")
 data$day_type<-factor(tmp_day, labels=c("weekday", "weekend"))
@@ -171,7 +189,8 @@ data$day_type<-factor(tmp_day, labels=c("weekday", "weekend"))
 The following line plots compare activity patterns between weekdays and 
 weekends.
 
-```{r lineplot_day_types}
+
+```r
 library(lattice)
 data_weekday <- aggregate(data[data$day_type=="weekday", 'steps'], 
                           by = list(data[data$day_type=="weekday",]$interval), 
@@ -193,5 +212,6 @@ xyplot(x ~ as.POSIXct(daytime) | day_type,
        scales=list(x=list(format = "%H")),
        xlab='Hours of Day', ylab="steps", 
        main='Differences in Activity Patterns')
-
 ```
+
+![](PA1_template_files/figure-html/lineplot_day_types-1.png) 
